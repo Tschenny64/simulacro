@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">simulacro</string>
+    <string name="pantalla_inicio">PantallaInicio</string>
+    <string name="pantalla_insertar">PantallaInsertar</string>
+    <string name="pantalla_actualizar">PantallaActualizar</string>
+    <string name="insertar_chat">Nueva Conversacion</string>
+    <string name="atras">VOLVERr</string>
+    <string name="cargando">Cargando</string>
+    <string name="error">Error</string>
+    <string name="error_telefono">Escribe un numero de telefono</string>
+    <string name="pantalla_ejercicio2">Ejercicio 2</string>
+    <string name="pantalla_ejercicio3">Ejercicio 3</string>
+    <string name="pantalla_insertar_ejercicio3">Insertar a la BD</string>
+    <string name="nombre">Nombre</string>
+    <string name="telefono">Telefono</string>
+</resources>

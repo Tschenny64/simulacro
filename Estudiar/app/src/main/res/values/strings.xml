@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Estudiar</string>
+    <string name="pantalla_inicio">Pantalla de inicio</string>
+    <string name="pantalla1">Primera Pantalla</string>
+    <string name="pantalla2">Segunda Pantalla</string>
+    <string name="pantalla3">Tercera Pantalla</string>
+    <string name="siguiente">Siguiente</string>
+    <string name="atras">Atras</string>
+    <string name="inicio">Inicio</string>
+</resources>

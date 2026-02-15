@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Retrofit</string>
+    <string name="cargando">Cargando...</string>
+    <string name="error_de_conexion">Error de conexión\n</string>
+</resources>
