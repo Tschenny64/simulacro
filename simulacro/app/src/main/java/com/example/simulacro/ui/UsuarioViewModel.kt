@@ -154,11 +154,13 @@ class UsuarioViewModel(
         }
     }
 
-    fun eliminarUsuarioBD(usuarioBD: UsuarioBD) {
+    fun eliminarUsuarioBD(id: Int) {
         viewModelScope.launch {
             usuarioUIState = UsuarioUIState.Cargando
             usuarioUIState = try {
+                val usuarioBD = usuarioRepositorioBD.obtenerPorIdBD(id)
                 usuarioRepositorioBD.eliminarBD(usuarioBD)
+
                 val listaUsuarios = usuarioRepositorio.obtenerUsuarios()
                 val listaUsuariosBD = usuarioRepositorioBD.obtenerTodosBD()
                 UsuarioUIState.ObtenerTodosExito(listaUsuarios, listaUsuariosBD)
@@ -167,6 +169,7 @@ class UsuarioViewModel(
             }
         }
     }
+
 
     fun obtenerUsuarioBDPorId(id: Int) {
         viewModelScope.launch {

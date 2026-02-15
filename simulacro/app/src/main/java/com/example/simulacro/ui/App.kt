@@ -13,9 +13,11 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -63,7 +65,8 @@ enum class Pantallas(@StringRes val titulo: Int) {
     Actualizar(titulo = R.string.pantalla_actualizar),
     Ejercicio2(titulo = R.string.pantalla_ejercicio2),
     Ejercicio3(titulo = R.string.pantalla_ejercicio3),
-    InsertarEjercicio3(titulo = R.string.pantalla_insertar_ejercicio3)
+    InsertarEjercicio3(titulo = R.string.pantalla_insertar_ejercicio3),
+    Favoritos(titulo = R.string.pantalla_favoritos)
 }
 
 val listaRutas = listOf(
@@ -188,6 +191,7 @@ fun App(
                 val listaBD = (uiState as? UsuarioUIState.ObtenerTodosExito)?.listaUsuariosBD ?: emptyList()
                 PantallaEjercicio3(
                     lista = listaBD,
+                    onUsuarioEliminado = { viewModel.eliminarUsuarioBD(it)},
                     onUsuarioPulsado = { id ->
                         viewModel.obtenerUsuarioBDPorId(id)
                     }
@@ -196,8 +200,8 @@ fun App(
             }
             composable(Pantallas.InsertarEjercicio3.name) {
                 PantallaInsertarEjercicio3(
-                    onInsertarPulsado = { id ->
-                        viewModel.insertarUsuarioBD(id)
+                    onInsertarPulsado = { usuarioBD ->
+                        viewModel.insertarUsuarioBD(usuarioBD)
                         navController.popBackStack(Pantallas.Ejercicio3.name, inclusive = false)                    }
 
                     )

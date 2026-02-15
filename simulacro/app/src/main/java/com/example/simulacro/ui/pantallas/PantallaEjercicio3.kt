@@ -1,6 +1,7 @@
 package com.example.simulacro.ui.pantallas
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,11 +17,11 @@ import androidx.compose.ui.unit.dp
 import com.example.simulacro.modelo.UsuarioBD
 import com.example.simulacro.ui.UsuarioUIState
 
-
 @Composable
 fun PantallaEjercicio3(
     lista: List<UsuarioBD>,
     onUsuarioPulsado: (Int) -> Unit,
+    onUsuarioEliminado: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -31,8 +32,9 @@ fun PantallaEjercicio3(
             Box(
                 modifier = Modifier
                     .padding(8.dp)
-                    .clickable(
-                        onClick = { onUsuarioPulsado(usuarioBD.id) }
+                    .combinedClickable(
+                        onClick = { onUsuarioPulsado(usuarioBD.id) },
+                        onLongClick = { onUsuarioEliminado(usuarioBD.id)}
                     )
             ) {
                 Column(
