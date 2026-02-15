@@ -1,4 +1,14 @@
 package com.example.bd.modelo
 
-class Producto {
-}
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+
+@Entity(tableName = "Productos")
+data class Producto(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+    val nombre: String,
+    val precio: Double,
+    val cantidad: Int
+)

@@ -5,9 +5,7 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
-data class Personaje(
-    @SerialName(value = "name")
-    val nombre: String,
-    @SerialName(value = "gender")
-    val genero: String
+data class Respuesta(
+    @SerialName(value = "results")
+    val resultados: List<Personaje>
 )

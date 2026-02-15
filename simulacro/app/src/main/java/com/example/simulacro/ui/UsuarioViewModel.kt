@@ -11,31 +11,40 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.simulacro.Aplicacion
 import com.example.simulacro.datos.UsuarioRepositorio
+import com.example.simulacro.datos.UsuarioRepositorioBD
 import com.example.simulacro.modelo.Usuario
+import com.example.simulacro.modelo.UsuarioBD
 import kotlinx.coroutines.launch
 import okio.IOException
 import retrofit2.HttpException
 
-
 sealed interface UsuarioUIState {
+    // Ambos (Retrofit + BD)
+    data class ObtenerTodosExito(
+        val listaUsuarios: List<Usuario>,
+        val listaUsuariosBD: List<UsuarioBD>
+    ) : UsuarioUIState
 
-    data class ObtenerExito(val usuarios: List<Usuario>) : UsuarioUIState
+    // Solo BD
+    data class ObtenerExitoBD(val usuarioBD: UsuarioBD) : UsuarioUIState
 
-    data class CrearExito(val usuario: Usuario) : UsuarioUIState
-
-    data class ActualizarExito(val usuario: Usuario) : UsuarioUIState
-
+    // Solo Retrofit
+    object CrearExito : UsuarioUIState
+    object ActualizarExito : UsuarioUIState
+    object EliminarExito : UsuarioUIState
     object Error : UsuarioUIState
-
     object Cargando : UsuarioUIState
 }
 
-class UsuarioViewModel(private val UsuarioRepositorio: UsuarioRepositorio) : ViewModel() {
+class UsuarioViewModel(
+    private val usuarioRepositorio: UsuarioRepositorio,
+    private val usuarioRepositorioBD: UsuarioRepositorioBD
+) : ViewModel() {
 
     var usuarioUIState: UsuarioUIState by mutableStateOf(UsuarioUIState.Cargando)
         private set
 
-    var usuarioPulsado: Usuario by mutableStateOf(Usuario("","","", mensajes = emptyList()))
+    var usuarioPulsado: Usuario by mutableStateOf(Usuario(id = "", nombre = "", telefono = "", mensajes = emptyList()))
         private set
 
     fun actualizarUsuarioPulsado(usuario: Usuario) {
@@ -43,29 +52,36 @@ class UsuarioViewModel(private val UsuarioRepositorio: UsuarioRepositorio) : Vie
     }
 
     init {
-        obtenerUsuarios()
+        obtenerTodos()
     }
 
-    fun obtenerUsuarios() {
+    // ============== CARGAR TODO (RETROFIT + BD) ==============
+    fun obtenerTodos() {
         viewModelScope.launch {
             usuarioUIState = UsuarioUIState.Cargando
             usuarioUIState = try {
-                val listaUsuarios = UsuarioRepositorio.obtenerUsuarios()
-                UsuarioUIState.ObtenerExito(listaUsuarios)
-            } catch (e: IOException) {
-                UsuarioUIState.Error
-            } catch (e: HttpException) {
+                val listaUsuarios = usuarioRepositorio.obtenerUsuarios()
+                val listaUsuariosBD = usuarioRepositorioBD.obtenerTodosBD()
+                UsuarioUIState.ObtenerTodosExito(listaUsuarios, listaUsuariosBD)
+            } catch (e: Exception) {
                 UsuarioUIState.Error
             }
         }
     }
 
+    // Si quieres seguir llamándolo obtenerUsuarios desde UI:
+    fun obtenerUsuarios() = obtenerTodos()
+
+    // ============== RETROFIT CRUD ==============
     fun insertarUsuario(usuario: Usuario) {
         viewModelScope.launch {
             usuarioUIState = UsuarioUIState.Cargando
             usuarioUIState = try {
-                val usuarioInsertado = UsuarioRepositorio.insertarUsuario(usuario)
-                UsuarioUIState.CrearExito(usuarioInsertado)
+                val insertado = usuarioRepositorio.insertarUsuario(usuario)
+                // refrescar lista para que la UI se actualice
+                val listaUsuarios = usuarioRepositorio.obtenerUsuarios()
+                val listaUsuariosBD = usuarioRepositorioBD.obtenerTodosBD()
+                UsuarioUIState.ObtenerTodosExito(listaUsuarios, listaUsuariosBD)
             } catch (e: IOException) {
                 UsuarioUIState.Error
             } catch (e: HttpException) {
@@ -78,11 +94,87 @@ class UsuarioViewModel(private val UsuarioRepositorio: UsuarioRepositorio) : Vie
         viewModelScope.launch {
             usuarioUIState = UsuarioUIState.Cargando
             usuarioUIState = try {
-                val usuarioActualizado = UsuarioRepositorio.actualizarUsuario(id, usuario)
-                UsuarioUIState.ActualizarExito(usuarioActualizado)
+                usuarioRepositorio.actualizarUsuario(id, usuario)
+                // refrescar lista
+                val listaUsuarios = usuarioRepositorio.obtenerUsuarios()
+                val listaUsuariosBD = usuarioRepositorioBD.obtenerTodosBD()
+                UsuarioUIState.ObtenerTodosExito(listaUsuarios, listaUsuariosBD)
             } catch (e: IOException) {
                 UsuarioUIState.Error
             } catch (e: HttpException) {
+                UsuarioUIState.Error
+            }
+        }
+    }
+
+    fun eliminarUsuario(id: String) {
+        viewModelScope.launch {
+            usuarioUIState = UsuarioUIState.Cargando
+            usuarioUIState = try {
+                usuarioRepositorio.eliminarUsuario(id)
+                // refrescar lista para que desaparezca de la UI
+                val listaUsuarios = usuarioRepositorio.obtenerUsuarios()
+                val listaUsuariosBD = usuarioRepositorioBD.obtenerTodosBD()
+                UsuarioUIState.ObtenerTodosExito(listaUsuarios, listaUsuariosBD)
+            } catch (e: IOException) {
+                UsuarioUIState.Error
+            } catch (e: HttpException) {
+                UsuarioUIState.Error
+            }
+        }
+    }
+
+    // ============== BD CRUD (si lo necesitas) ==============
+    fun insertarUsuarioBD(usuarioBD: UsuarioBD) {
+        viewModelScope.launch {
+            usuarioUIState = UsuarioUIState.Cargando
+            usuarioUIState = try {
+                usuarioRepositorioBD.insertarBD(usuarioBD)
+                // refrescar todo
+                val listaUsuarios = usuarioRepositorio.obtenerUsuarios()
+                val listaUsuariosBD = usuarioRepositorioBD.obtenerTodosBD()
+                UsuarioUIState.ObtenerTodosExito(listaUsuarios, listaUsuariosBD)
+            } catch (e: Exception) {
+                UsuarioUIState.Error
+            }
+        }
+    }
+
+    fun actualizarUsuarioBD(usuarioBD: UsuarioBD) {
+        viewModelScope.launch {
+            usuarioUIState = UsuarioUIState.Cargando
+            usuarioUIState = try {
+                usuarioRepositorioBD.actualizarBD(usuarioBD)
+                val listaUsuarios = usuarioRepositorio.obtenerUsuarios()
+                val listaUsuariosBD = usuarioRepositorioBD.obtenerTodosBD()
+                UsuarioUIState.ObtenerTodosExito(listaUsuarios, listaUsuariosBD)
+            } catch (e: Exception) {
+                UsuarioUIState.Error
+            }
+        }
+    }
+
+    fun eliminarUsuarioBD(usuarioBD: UsuarioBD) {
+        viewModelScope.launch {
+            usuarioUIState = UsuarioUIState.Cargando
+            usuarioUIState = try {
+                usuarioRepositorioBD.eliminarBD(usuarioBD)
+                val listaUsuarios = usuarioRepositorio.obtenerUsuarios()
+                val listaUsuariosBD = usuarioRepositorioBD.obtenerTodosBD()
+                UsuarioUIState.ObtenerTodosExito(listaUsuarios, listaUsuariosBD)
+            } catch (e: Exception) {
+                UsuarioUIState.Error
+            }
+        }
+    }
+
+    fun obtenerUsuarioBDPorId(id: Int) {
+        viewModelScope.launch {
+            usuarioUIState = UsuarioUIState.Cargando
+            usuarioUIState = try {
+                val usuarioBD = usuarioRepositorioBD.obtenerPorIdBD(id)
+                UsuarioUIState.ObtenerExitoBD(usuarioBD)
+            } catch (e: Exception) {
                 UsuarioUIState.Error
             }
         }
@@ -92,8 +184,12 @@ class UsuarioViewModel(private val UsuarioRepositorio: UsuarioRepositorio) : Vie
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val aplicacion = (this[APPLICATION_KEY] as Aplicacion)
-                val UsuarioRepositorio = aplicacion.contenedor.UsuarioRepositorio
-                UsuarioViewModel(UsuarioRepositorio = UsuarioRepositorio)
+                val usuarioRepositorio = aplicacion.contenedor.UsuarioRepositorio
+                val usuarioRepositorioBD = aplicacion.contenedor.usuarioRepositorioBD
+                UsuarioViewModel(
+                    usuarioRepositorio = usuarioRepositorio,
+                    usuarioRepositorioBD = usuarioRepositorioBD
+                )
             }
         }
     }
